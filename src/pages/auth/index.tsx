@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Table, Button, Modal, Form, Input, message, Popconfirm } from "antd";
 import { GetServerSideProps } from "next";
 import Layout from "@/components/Layout";
-import request from '../../request';
+import { http } from '../../services/request';
 import db from "../../db"; // 引入数据库连接
 
 interface VerificationCode {
@@ -37,12 +37,8 @@ const VerificationCodesPage: React.FC<VerificationCodesProps> = ({ verificationC
       const values = await form.validateFields(); // 验证新增表单
 
       // 发送 POST 请求到 API 路由
-      const response = await request('/api/auth-codes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code: values.code }),
+      const response = await http('post', '/api/auth-codes', {
+        code: values.code,
       });
 
       const newCode: VerificationCode = response[0];
@@ -65,9 +61,7 @@ const VerificationCodesPage: React.FC<VerificationCodesProps> = ({ verificationC
   const handleDelete = async (id: number) => {
     try {
       // 发送 DELETE 请求到 API 路由
-      await request(`/api/auth-codes/${id}`, {
-        method: 'DELETE',
-      });
+      await http('delete', `/api/auth-codes/${id}`);
 
       // 更新认证码列表，移除被删除的认证码
       setVerificationCodeList(verificationCodeList.filter((code) => code.id !== id));
