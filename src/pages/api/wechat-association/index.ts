@@ -1,9 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import db from "../../../db";
 import axios from "axios";
+import jwt from "jsonwebtoken";
 
 const APPID = process.env.WECHAT_SERVER_APPID || 'wx85570a9bf2385a6b';
 const APPSECRET = process.env.WECHAT_SERVER_APPSECRET || '';
+const JWT_SECRET = process.env.JWT_SECRET || '';
 
 export default async function handler(
   req: NextApiRequest,
@@ -20,24 +22,34 @@ export default async function handler(
       return res.status(400).json({ message: "缺少必要参数" });
     }
 
-    // state 参数直接包含用户 ID
-    const userId = state as string;
+    // 解析 state 参数中的 token
+    let decodedState;
+    try {
+      decodedState = JSON.parse(state as string);
+    } catch (e) {
+      return res.status(400).json({ message: "无效的 state 参数" });
+    }
+
+    const { token } = decodedState;
+    
+    // 验证 token 并获取用户信息
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: number };
+    const userId = decoded.id;
 
     // 使用 code 获取访问令牌
     const tokenUrl = `https://api.weixin.qq.com/sns/oauth2/access_token?appid=${APPID}&secret=${APPSECRET}&code=${code}&grant_type=authorization_code`;
     const tokenResponse = await axios.get(tokenUrl);
     const { access_token, openid, unionid } = tokenResponse.data;
 
-    if (!unionid) {
-      return res.status(400).json({ message: "未能获取到 unionid" });
-    }
+    // if (!unionid) {
+    //   return res.status(400).json({ message: "未能获取到 unionid" });
+    // }
 
     // 更新用户的 unionid
     await db('users')
       .where({ id: userId })
       .update({ 
-        unionid,
-        openid,
+        unionid : openid,
         updated_at: new Date()
       });
 
