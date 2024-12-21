@@ -16,24 +16,14 @@ export default async function handler(
   }
 
   try {
-    const { code, state } = req.query;
+    const { code, token } = req.query;
 
-    if (!code || !state) {
+    if (!code || !token) {
       return res.status(400).json({ message: "缺少必要参数" });
     }
 
-    // 解析 state 参数中的 token
-    let decodedState;
-    try {
-      decodedState = JSON.parse(state as string);
-    } catch (e) {
-      return res.status(400).json({ message: "无效的 state 参数" });
-    }
-
-    const { token } = decodedState;
-    
     // 验证 token 并获取用户信息
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: number };
+    const decoded = jwt.verify(token as string, JWT_SECRET) as { id: number };
     const userId = decoded.id;
 
     // 使用 code 获取访问令牌
