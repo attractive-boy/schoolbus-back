@@ -31,10 +31,6 @@ export default async function handler(
     const tokenResponse = await axios.get(tokenUrl);
     const { access_token, openid, unionid } = tokenResponse.data;
 
-    // if (!unionid) {
-    //   return res.status(400).json({ message: "未能获取到 unionid" });
-    // }
-
     // 更新用户的 unionid
     await db('users')
       .where({ id: userId })
@@ -43,11 +39,14 @@ export default async function handler(
         updated_at: new Date()
       });
 
-    // 修改：返回 HTML 页面，其中包含向小程序发送消息的脚本
+    // 修改：返回 HTML 页面，添加微信 JS-SDK 引用
     res.setHeader('Content-Type', 'text/html');
     res.send(`
       <!DOCTYPE html>
       <html>
+        <head>
+          <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
+        </head>
         <body>
           <script type="text/javascript">
             wx.miniProgram.postMessage({ 
@@ -66,11 +65,14 @@ export default async function handler(
 
   } catch (error) {
     console.error('微信关联过程中出错:', error);
-    // 修改：返回错误页面
+    // 修改：错误页面也需要添加微信 JS-SDK 引用
     res.setHeader('Content-Type', 'text/html');
     res.send(`
       <!DOCTYPE html>
       <html>
+        <head>
+          <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
+        </head>
         <body>
           <script type="text/javascript">
             wx.miniProgram.postMessage({ 
