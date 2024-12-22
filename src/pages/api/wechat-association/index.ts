@@ -43,11 +43,45 @@ export default async function handler(
         updated_at: new Date()
       });
 
-    // 重定向到前端页面
-    res.redirect(302, '/account/profile?binding=success');
+    // 修改：返回 HTML 页面，其中包含向小程序发送消息的脚本
+    res.setHeader('Content-Type', 'text/html');
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <body>
+          <script type="text/javascript">
+            wx.miniProgram.postMessage({ 
+              data: { 
+                type: 'auth_success',
+                data: {
+                  openId: '${openid}'
+                }
+              } 
+            });
+            wx.miniProgram.navigateBack();
+          </script>
+        </body>
+      </html>
+    `);
 
   } catch (error) {
     console.error('微信关联过程中出错:', error);
-    res.redirect(302, '/account/profile?binding=error');
+    // 修改：返回错误页面
+    res.setHeader('Content-Type', 'text/html');
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <body>
+          <script type="text/javascript">
+            wx.miniProgram.postMessage({ 
+              data: { 
+                type: 'auth_fail',
+                error: '关联失败，请重试'
+              } 
+            });
+          </script>
+        </body>
+      </html>
+    `);
   }
 }
