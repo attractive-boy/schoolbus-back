@@ -38,6 +38,11 @@ export default async function handler(
           }
         }
 
+        // 确保 daily_price 是数字类型
+        if (req.body.daily_price) {
+          updateData.daily_price = Number(req.body.daily_price);
+        }
+
         const updated = await db('bus_schedules')
           .where({ id })
           .update(updateData);

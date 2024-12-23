@@ -41,12 +41,32 @@ export default async function handler(req:NextApiRequest, res:NextApiResponse) {
       console.log('支付成功:', paymentResult);
       const PaymentOrderNumber = paymentResult.out_trade_no;
 
-    
-      // 更新订单状态
-      // 示例：更新数据库中的订单状态
-      await db('CompanyInfo').where({PaymentOrderNumber}).update({
-        PaymentTime: new Date(),
-        IsPaid: 1
+      // 更新支付记录和订单状态
+      await db.transaction(async (trx) => {
+        // 更新支付记录状态
+        const payment = await trx('payments')
+          .where({ payment_no: PaymentOrderNumber })
+          .first();
+        
+        if (!payment) {
+          throw new Error('支付记录不存在');
+        }
+
+        await trx('payments')
+          .where({ payment_no: PaymentOrderNumber })
+          .update({
+            status: 1, // 支付成功
+            paid_at: new Date(),
+            transaction_id: paymentResult.transaction_id
+          });
+
+        // 更新订单状态
+        await trx('orders')
+          .where({ id: payment.order_id })
+          .update({
+            status: 1, // 已支付
+            paid_at: new Date()
+          });
       });
 
       // 返回成功响应给微信支付平台

@@ -53,6 +53,7 @@ export default async function handler(
           departure_time: req.body.departure_time,
           stops: JSON.stringify(req.body.stops),
           status: req.body.status,
+          daily_price: req.body.daily_price,
           created_at: new Date(),
           updated_at: new Date()
         });

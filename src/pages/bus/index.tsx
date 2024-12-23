@@ -17,6 +17,7 @@ interface BusSchedule {
   departure_time: string;
   stops: string[];
   status: 'active' | 'inactive';
+  daily_price: number;
   created_at: string;
   updated_at: string;
 }
@@ -76,6 +77,14 @@ const BusSchedulePage = () => {
       search: {
         transform: (value) => ({ status: value })
       },
+      align: 'center',
+    },
+    {
+      title: '每日价格',
+      dataIndex: 'daily_price',
+      key: 'daily_price',
+      valueType: 'money',
+      search: false,
       align: 'center',
     },
     {
@@ -146,6 +155,7 @@ const BusSchedulePage = () => {
       service_dates: selectedDates,
       departure_time: values.departure_time.format('HH:mm'),
       stops: values.stops.split(',').map((stop: string) => stop.trim()),
+      daily_price: values.daily_price,
       status: 'active',
     };
 
@@ -334,6 +344,14 @@ const BusSchedulePage = () => {
               placeholder="例如：起点站, 二号站, 三号站, 终点站"
               rows={4}
             />
+          </Form.Item>
+
+          <Form.Item
+            label="每日价格"
+            name="daily_price"
+            rules={[{ required: true, message: '请输入每日价格' }]}
+          >
+            <Input type="number" step="0.01" min="0" placeholder="请输入每日价格" />
           </Form.Item>
 
           <Form.Item>
