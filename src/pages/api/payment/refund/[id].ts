@@ -8,8 +8,8 @@ import { Irefunds, Irefunds2 } from 'wechatpay-node-v3/dist/lib/interface';
 const pay = new WxPay({
     appid: process.env.WECHAT_APP_ID || '',
     mchid: process.env.WECHAT_MCH_ID || '',
-    publicKey: fs.readFileSync('src/certificate/apiclient_cert.pem'), // 公钥
-    privateKey: fs.readFileSync('src/certificate/apiclient_key.pem'), // 秘
+    publicKey: Buffer.from(process.env.WECHAT_PUBLIC_KEY || '', 'base64'),
+    privateKey: Buffer.from(process.env.WECHAT_PRIVATE_KEY || '', 'base64'),
   });
 
 export default async function handler(req:NextApiRequest, res:NextApiResponse) {

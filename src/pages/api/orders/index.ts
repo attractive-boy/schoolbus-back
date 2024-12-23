@@ -9,8 +9,8 @@ import jwt from 'jsonwebtoken';
 const pay = new WxPay({
   appid: process.env.WECHAT_APP_ID || "",
   mchid: process.env.WECHAT_MCH_ID || "",
-  publicKey: fs.readFileSync('src/certificate/apiclient_cert.pem'),
-  privateKey: fs.readFileSync('src/certificate/apiclient_key.pem'),
+  publicKey: Buffer.from(process.env.WECHAT_PUBLIC_KEY || '', 'base64'),
+  privateKey: Buffer.from(process.env.WECHAT_PRIVATE_KEY || '', 'base64'),
 });
 
 const JWT_SECRET = process.env.JWT_SECRET || '';
@@ -121,7 +121,7 @@ async function createWxOrder(order: any, paymentNo: string) {
     appid: process.env.WECHAT_APP_ID,
     mchid: process.env.WECHAT_MCH_ID,
     out_trade_no: paymentNo,
-    notify_url: `${process.env.BASE_URL}/api/payment/notify`,
+    notify_url: `https://moonyun.us.kg/api/payment/notify`,
     description: `乘车预约支付`,
     amount: {
       total: parseInt((order.total_amount * 100).toString())
@@ -140,7 +140,7 @@ async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
     // 验证用户权限
     const userId = verifyToken(req.headers.authorization);
 
-    // 构建���础条件
+    // 构建础条件
     const whereConditions = (builder: any) => {
       if (userId) {
         builder.where('orders.user_id', userId);
