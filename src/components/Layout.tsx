@@ -3,7 +3,7 @@ import React from 'react';
 import { Layout as AntLayout, Menu } from 'antd';
 import { useRouter } from 'next/router';
 import {
-  HomeOutlined,
+  CrownFilled,
   CarOutlined,
   SearchOutlined,
   LogoutOutlined,
@@ -37,6 +37,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       key: '/lost-found',
       icon: <SearchOutlined />,
       label: '失物招领',
+    },
+    {
+      key: '/orders',
+      icon: <CrownFilled />,
+      label: '订单管理',
     },
     {
       key: '/logout',

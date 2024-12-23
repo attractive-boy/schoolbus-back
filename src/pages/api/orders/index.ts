@@ -18,6 +18,8 @@ const JWT_SECRET = process.env.JWT_SECRET || '';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     return handlePostRequest(req, res);
+  } else if (req.method === 'GET') {
+    return handleGetRequest(req, res);
   } else {
     return res.status(405).json({ message: '方法不允许' });
   }
@@ -36,7 +38,7 @@ async function handlePostRequest(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // 创建订单
-    const orderId = await createOrder(userId, routeId, totalAmount);
+    const orderId = await createOrder(userId, routeId, totalAmount, dates);
     
     // 直接处理支付
     const order = await getOrder(orderId);
@@ -81,7 +83,7 @@ function verifyToken(authHeader?: string): number | null {
   }
 }
 
-async function createOrder(userId: number, routeId: number, totalAmount: number): Promise<number> {
+async function createOrder(userId: number, routeId: number, totalAmount: number, dates: string[]): Promise<number> {
   const orderNo = `ORDER${Date.now()}${Math.floor(Math.random() * 10000)}`;
   const [orderId] = await db('orders').insert({
     user_id: userId,
@@ -89,7 +91,8 @@ async function createOrder(userId: number, routeId: number, totalAmount: number)
     total_amount: totalAmount,
     status: 0,
     created_at: new Date(),
-    order_no: orderNo
+    order_no: orderNo,
+    selected_dates: JSON.stringify(dates)
   });
   return orderId;
 }
@@ -128,4 +131,70 @@ async function createWxOrder(order: any, paymentNo: string) {
     }
   };
   return await pay.transactions_jsapi(orderData);
+}
+
+async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    const { current = 1, pageSize = 10, order_no, route_name, user_name } = req.query;
+
+    // 验证用户权限
+    const userId = verifyToken(req.headers.authorization);
+
+    // 构建���础条件
+    const whereConditions = (builder: any) => {
+      if (userId) {
+        builder.where('orders.user_id', userId);
+      }
+      if (order_no) {
+        builder.where('orders.order_no', 'like', `%${order_no}%`);
+      }
+      if (route_name) {
+        builder.where('bus_schedules.route_name', 'like', `%${route_name}%`);
+      }
+      if (user_name) {
+        builder.where('users.nickname', 'like', `%${user_name}%`);
+      }
+    };
+
+    // 单独查询总数
+    const totalQuery = db('orders')
+      .join('users', 'orders.user_id', 'users.id')
+      .join('bus_schedules', 'orders.route_id', 'bus_schedules.id')
+      .where(whereConditions)
+      .count('orders.id as total')
+      .first();
+
+    // 查询列表数据
+    const listQuery = db('orders')
+      .join('users', 'orders.user_id', 'users.id')
+      .join('bus_schedules', 'orders.route_id', 'bus_schedules.id')
+      .select(
+        'orders.*',
+        'users.nickname as user_name',
+        'bus_schedules.route_name as route_name'
+      )
+      .where(whereConditions)
+      .orderBy('orders.created_at', 'desc')
+      .offset((Number(current) - 1) * Number(pageSize))
+      .limit(Number(pageSize));
+
+    // 并行执行查询
+    const [totalResult, list] = await Promise.all([totalQuery, listQuery]);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        list,
+        total: totalResult?.total || 0
+      }
+    });
+
+  } catch (error) {
+    console.error('获取订单列表失败:', error);
+    return res.status(500).json({
+      success: false,
+      message: '获取订单列表失败',
+      error: error instanceof Error ? error.message : '未知错误'
+    });
+  }
 }
