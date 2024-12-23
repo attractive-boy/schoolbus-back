@@ -9,6 +9,7 @@ const pay = new WxPay({
   mchid: process.env.WECHAT_MCH_ID || '',
   publicKey: Buffer.from(process.env.WECHAT_PUBLIC_KEY || '', 'base64'),
   privateKey: Buffer.from(process.env.WECHAT_PRIVATE_KEY || '', 'base64'),
+  key: process.env.WECHAT_PAY_KEY || '',
 });
 
 export default async function handler(req:NextApiRequest, res:NextApiResponse) {
