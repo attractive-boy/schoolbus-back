@@ -7,7 +7,10 @@ import {
   CarOutlined,
   SearchOutlined,
   LogoutOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
+
+// ... 其他导入保持不变 ...
 
 const { Header, Content, Sider } = AntLayout;
 
@@ -42,6 +45,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       key: '/orders',
       icon: <CrownFilled />,
       label: '订单管理',
+    },
+   
+    // ... 其他菜单项 ...
+    {
+      key: 'users',
+      icon: <UserOutlined />,
+      label: '用户管理',
+      path: '/users',
     },
     {
       key: '/logout',

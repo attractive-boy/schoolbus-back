@@ -135,12 +135,12 @@ async function createWxOrder(order: any, paymentNo: string) {
 
 async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { current = 1, pageSize = 10, order_no, route_name, user_name } = req.query;
+    const { current = 1, pageSize = 10, order_no, route_name, user_name, status } = req.query;
 
     // 验证用户权限
     const userId = verifyToken(req.headers.authorization);
 
-    // 构建础条件
+    // 构建基础条件
     const whereConditions = (builder: any) => {
       if (userId) {
         builder.where('orders.user_id', userId);
@@ -153,6 +153,10 @@ async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
       }
       if (user_name) {
         builder.where('users.nickname', 'like', `%${user_name}%`);
+      }
+      // 添加状态筛选
+      if (status !== undefined && status !== '') {
+        builder.where('orders.status', status);
       }
     };
 

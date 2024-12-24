@@ -41,6 +41,7 @@ const OrdersPage = () => {
       1: { color: 'green', text: '已支付' },
       2: { color: 'red', text: '已取消' },
       3: { color: 'orange', text: '已退款' },
+      4: { color: 'purple', text: '退款申请中' },
     };
     return statusMap[status as keyof typeof statusMap] || { color: 'default', text: '未知状态' };
   };
@@ -238,6 +239,7 @@ const OrdersPage = () => {
         1: { text: '已支付', status: 'Success' },
         2: { text: '已取消', status: 'Error' },
         3: { text: '已退款', status: 'Warning' },
+        4: { text: '退款申请中', status: 'Processing' },
       },
       render: (_, record) => {
         const status = getStatusTag(record.status);
