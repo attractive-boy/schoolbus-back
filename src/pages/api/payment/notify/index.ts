@@ -53,20 +53,21 @@ export default async function handler(req:NextApiRequest, res:NextApiResponse) {
           throw new Error('支付记录不存在');
         }
 
+        // 更新支付记录，移除 paid_at 字段
         await trx('payments')
           .where({ payment_no: PaymentOrderNumber })
           .update({
             status: 1, // 支付成功
-            paid_at: new Date(),
             transaction_id: paymentResult.transaction_id
           });
 
-        // 更新订单状态
+        // 更新订单状态，检查 orders 表是否有 paid_at 字段
         await trx('orders')
           .where({ id: payment.order_id })
           .update({
-            status: 1, // 已支付
-            paid_at: new Date()
+            status: 1 // 已支付
+            // 如果 orders 表也没有 paid_at 字段，请移除下面这行
+            // paid_at: new Date()
           });
       });
 
