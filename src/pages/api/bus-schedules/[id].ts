@@ -19,6 +19,11 @@ export default async function handler(
           updated_at: new Date()
         };
 
+        // 确保 departure_time 是 JSON 字符串
+        if (req.body.departure_time) {
+          updateData.departure_time = JSON.stringify(req.body.departure_time);
+        }
+
         // 确保 service_dates 是 JSON 字符串
         if (req.body.service_dates) {
           updateData.service_dates = JSON.stringify(req.body.service_dates);

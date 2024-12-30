@@ -66,3 +66,8 @@ a {
   pointer-events: none;
   text-wrap: nowrap;
 }
+.demo-editor {
+  border: 1px solid #ddd; /* 添加边框 */
+  padding: 10px; /* 添加内边距 */
+  border-radius: 4px; /* 添加圆角 */
+}

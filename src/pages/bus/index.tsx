@@ -14,7 +14,7 @@ interface BusSchedule {
   id: string;
   route_name: string;
   service_dates: string[];
-  departure_time: string;
+  departure_time: string[];
   stops: string[];
   status: 'active' | 'inactive';
   daily_price: number;
@@ -50,9 +50,10 @@ const BusSchedulePage = () => {
       title: '发车时间',
       dataIndex: 'departure_time',
       key: 'departure_time',
-      valueType: 'time',
+      valueType: 'text',
       search: false,
       align: 'center',
+      render: (_, record) => Array.isArray(record.departure_time) ? record.departure_time.join(', ') : '',
     },
     {
       title: '停靠站点',
@@ -125,7 +126,8 @@ const BusSchedulePage = () => {
     setModalData(record);
     form.setFieldsValue({
       ...record,
-      departure_time: dayjs(record.departure_time, 'HH:mm'),
+      departure_time: Array.isArray(record.departure_time) ?
+        record.departure_time.map((time: string | number | dayjs.Dayjs | Date | null | undefined) => dayjs(time, 'HH:mm')) : [],
       stops: record.stops.join(', '),
     });
     setSelectedDates(record.service_dates);
@@ -153,7 +155,7 @@ const BusSchedulePage = () => {
     const formData = {
       route_name: values.route_name,
       service_dates: selectedDates,
-      departure_time: values.departure_time.format('HH:mm'),
+      departure_time: values.departure_time.map((time: Dayjs) => time.format('HH:mm')),
       stops: values.stops.split(',').map((stop: string) => stop.trim()),
       daily_price: values.daily_price,
       status: 'active',
@@ -218,9 +220,9 @@ const BusSchedulePage = () => {
               pageSize: params.pageSize,
               current: params.current,
             });
-            
+
             console.log('API Response:', response);
-            
+
             return {
               data: response.data.list || [],
               success: true,
@@ -313,10 +315,10 @@ const BusSchedulePage = () => {
               已选择日期：
               <Space wrap>
                 {selectedDates.map(date => (
-                  <Tag 
-                    key={date} 
-                    color="blue" 
-                    closable 
+                  <Tag
+                    key={date}
+                    color="blue"
+                    closable
                     onClose={() => setSelectedDates(prev => prev.filter(d => d !== date))}
                   >
                     {date}
@@ -331,7 +333,31 @@ const BusSchedulePage = () => {
             name="departure_time"
             rules={[{ required: true, message: '请选择发车时间' }]}
           >
-            <TimePicker format="HH:mm" style={{ width: '100%' }} />
+
+            <Form.List name="departure_time">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, fieldKey, ...restField }) => (
+                    <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                      <Form.Item
+                        {...restField}
+                        name={name}
+                        fieldKey={fieldKey}
+                        rules={[{ required: true, message: '请选择发车时间' }]} >
+                        <TimePicker format="HH:mm" />
+                      </Form.Item>
+                      <Button type="link" onClick={() => remove(name)}>删除</Button>
+                    </Space>
+                  ))}
+                  <Form.Item>
+                    <Button type="dashed" onClick={() => add()} block>
+                      新增发车时间
+                    </Button>
+                  </Form.Item>
+                </>
+              )}
+            </Form.List>
+
           </Form.Item>
 
           <Form.Item
@@ -340,7 +366,7 @@ const BusSchedulePage = () => {
             rules={[{ required: true, message: '请输入停靠站点' }]}
             extra="请用英文逗号分隔各个站点"
           >
-            <Input.TextArea 
+            <Input.TextArea
               placeholder="例如：起点站, 二号站, 三号站, 终点站"
               rows={4}
             />

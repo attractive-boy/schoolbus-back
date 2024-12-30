@@ -8,6 +8,7 @@ import {
   SearchOutlined,
   LogoutOutlined,
   UserOutlined,
+  FileOutlined
 } from '@ant-design/icons';
 
 // ... 其他导入保持不变 ...
@@ -53,6 +54,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       icon: <UserOutlined />,
       label: '用户管理',
       path: '/users',
+    },
+    //协议编辑
+    {
+      key: '/protocol',
+      icon: <FileOutlined />,
+      label: '协议编辑',
     },
     {
       key: '/logout',

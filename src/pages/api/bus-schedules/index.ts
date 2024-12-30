@@ -50,7 +50,7 @@ export default async function handler(
         const newSchedule = await db('bus_schedules').insert({
           route_name: req.body.route_name,
           service_dates: JSON.stringify(req.body.service_dates),
-          departure_time: req.body.departure_time,
+          departure_time: JSON.stringify(req.body.departure_time),
           stops: JSON.stringify(req.body.stops),
           status: req.body.status,
           daily_price: req.body.daily_price,
