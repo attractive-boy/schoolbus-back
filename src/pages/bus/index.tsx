@@ -29,6 +29,7 @@ const BusSchedulePage = () => {
   const [modalData, setModalData] = useState<any>({});
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(dayjs().month());
 
   useEffect(() => {
     setMounted(true);
@@ -181,14 +182,16 @@ const BusSchedulePage = () => {
     }
   };
 
-  const onDateSelect = (date: Dayjs) => {
+  const onDateSelect = (date: Dayjs,info: { source: 'year' | 'month' | 'date' | 'customize' }) => {
     const dateStr = date.format('YYYY-MM-DD');
-    setSelectedDates(prev => {
-      if (prev.includes(dateStr)) {
-        return prev.filter(d => d !== dateStr);
+    setSelectedMonth(dayjs(dateStr).month());
+    if (info.source == 'date') {
+      if (!selectedDates.includes(dateStr)) {
+        setSelectedDates(prev => [...prev, dateStr].sort());
+      }else{
+        setSelectedDates(prev => prev.filter(d => d !== dateStr));
       }
-      return [...prev, dateStr].sort();
-    });
+    }
   };
 
   const dateCellRender = (date: Dayjs) => {
@@ -312,9 +315,9 @@ const BusSchedulePage = () => {
               }}
             />
             <div style={{ marginTop: 8 }}>
-              已选择日期：
+              本月已选择日期：
               <Space wrap>
-                {selectedDates.map(date => (
+                {selectedDates.filter(date => selectedMonth == dayjs(date).month()).map(date => (
                   <Tag
                     key={date}
                     color="blue"
@@ -325,6 +328,9 @@ const BusSchedulePage = () => {
                   </Tag>
                 ))}
               </Space>
+            </div>
+            <div>
+            本月已选择天数：{selectedDates.filter(date => selectedMonth == dayjs(date).month()).length}
             </div>
           </Form.Item>
 

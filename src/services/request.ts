@@ -40,13 +40,17 @@ instance.interceptors.request.use((url: string, options: RequestOptionsInit) => 
 
 // 响应拦截器
 instance.interceptors.response.use(async (response: Response) => {
-  try {
-    const data = await response.clone().json();
-    return response;
-  } catch (error) {
-    console.error("响应解析错误:", error);
-    throw error;
+  const contentType = response.headers.get('Content-Type');
+  if (contentType && contentType.includes('application/json')) {
+    try {
+      const data = await response.clone().json();
+      return response;
+    } catch (error) {
+      console.error("响应解析错误:", error);
+      throw error;
+    }
   }
+  return response;
 });
 
 // 通用请求方法
@@ -95,3 +99,41 @@ export const put = <T = any>(url: string, data?: any, options?: RequestOptions) 
 
 export const del = <T = any>(url: string, data?: any, options?: RequestOptions) =>
   http<T>('delete', url, data, options);
+
+// 专门用于文件下载的请求方法
+export const downloadExcelFile = async (url: string, params?: any, options: RequestOptions = {}) => {
+  const { showError = true } = options;
+
+  try {
+    const requestConfig = {
+      ...(params ? { params } : {}),
+      responseType: 'blob' as const, // 设置响应类型为 blob
+    };
+
+    const response = await instance.get(url, requestConfig);
+
+    // 创建一个链接并触发下载
+    const blob = new Blob([response], { type: response.type });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    
+    // 改进文件名生成逻辑
+    const currentDate = new Date().toISOString().split('T')[0]; // 获取当前日期
+    const safeFileName = `订单统计_${currentDate}.xlsx`; // 设置更具可读性的文件名
+    link.download = safeFileName; // 设置下载文件名
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error: unknown) {
+    console.error("下载文件错误:", error);
+    if (showError) {
+      if (error instanceof Error) {
+        message.error(error.message || '下载失败');
+      } else {
+        message.error('下载失败');
+      }
+    }
+    throw error;
+  }
+}

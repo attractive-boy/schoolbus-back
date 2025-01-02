@@ -1,12 +1,13 @@
 'use client';
 import React, { useRef, useState, useEffect } from "react";
 import { ActionType, ProTable } from "@ant-design/pro-components";
-import { Button, Tag, Modal, message, Calendar } from "antd";
-import { get, put } from '@/services/request';
+import { Button, Tag, Modal, message, Calendar, DatePicker, Popconfirm } from "antd";
+import { downloadExcelFile, get, put } from '@/services/request';
 import Layout from "@/components/Layout";
 import type { ProColumns } from '@ant-design/pro-components';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import { DownloadOutlined } from '@ant-design/icons';
 dayjs.extend(isSameOrAfter);
 
 interface OrderType {
@@ -21,6 +22,7 @@ interface OrderType {
   user_name: string;
   payment_status: number;
   selected_dates: string[] | null;
+  trip_type: '单程' | '返程';
 }
 
 const getDayCount = (dates: string[] | null): number => {
@@ -30,6 +32,7 @@ const getDayCount = (dates: string[] | null): number => {
 const OrdersPage = () => {
   const ref = useRef<ActionType>();
   const [isClient, setIsClient] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(dayjs());
 
   useEffect(() => {
     setIsClient(true);
@@ -192,6 +195,27 @@ const OrdersPage = () => {
     });
   };
 
+  const handleExport = () => {
+    if (selectedDate) {
+      const year = selectedDate.year();
+      const month = selectedDate.month() + 1;
+      const startDate = dayjs(`${year}-${month}-01`).format('YYYY-MM-DD');
+      const endDate = dayjs(`${year}-${month}-01`).endOf('month').format('YYYY-MM-DD');
+      console.log(startDate, endDate);
+      //发送请求
+      downloadExcelFile(`/orders/export`, {
+        start_time: startDate,
+        end_time: endDate,
+      }, {
+        showSuccess: true,
+        successMsg: '导出成功'
+      });
+    } else {
+      // 提示用户选择日期
+      alert('请先选择年月');
+    }
+  };
+
   const columns: ProColumns<OrderType>[] = [
     {
       title: '订单编号',
@@ -251,8 +275,16 @@ const OrdersPage = () => {
       title: '创建时间',
       dataIndex: 'created_at',
       key: 'created_at',
-      valueType: 'dateTime',
-      search: false,
+      valueType: 'dateRange',
+      search: {
+        transform: (value) => ({ 
+          start_time: value[0],
+          end_time: value[1]
+        })
+      },
+      render: (_, record) => {
+        return dayjs(record.created_at).format('YYYY-MM-DD');
+      },
       align: 'center',
     },
     {
@@ -264,6 +296,20 @@ const OrdersPage = () => {
       render: (_, record) => {
         return `${getDayCount(record.selected_dates)}天`;
       },
+    },
+    {
+      title: '行程类型',
+      dataIndex: 'trip_type',
+      key: 'trip_type',
+      valueType: 'select',
+      valueEnum: {
+        '单程': { text: '单程', status: 'Default' },
+        '返程': { text: '返程', status: 'Default' },
+      },
+      search: {
+        transform: (value) => ({ trip_type: value })
+      },
+      align: 'center',
     },
     {
       title: '操作',
@@ -328,6 +374,28 @@ const OrdersPage = () => {
           }}
           dateFormatter="string"
           headerTitle="订单管理"
+          toolBarRender={() => [
+            <Popconfirm
+              title={
+                <div>
+                  <span>请选择导出日期：</span>
+                  <DatePicker 
+                    value={selectedDate}
+                    onChange={(date) => setSelectedDate(date)} 
+                    picker="month" 
+                    style={{ marginTop: '8px' }} 
+                  />
+                </div>
+              }
+              onConfirm={handleExport}
+              okText="确认"
+              cancelText="取消"
+            >
+              <Button key="add" type="primary">
+                <DownloadOutlined /> 导出
+              </Button>
+            </Popconfirm>,
+          ]}
         />
       ) : null}
     </Layout>

@@ -11,7 +11,7 @@ const defaultAvatarUrl = 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia0
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    const { code, user_type, nickname, avatarUrl } = req.body;
+    const { code, user_type, nickname, avatarUrl, communityId } = req.body;
 
     try {
       // 使用 code 调用微信的 API 获取 openid 和 session_key
@@ -40,7 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           user_type,
           nickname,
           avatar_url: avatarUrl || defaultAvatarUrl,
-          created_at: new Date()
+          created_at: new Date(),
+          community_id: communityId
         });
         user = await db('users').where({ id }).first();
       } else {
@@ -51,7 +52,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             user_type,
             nickname,
             avatar_url: avatarUrl || defaultAvatarUrl,
-            updated_at: new Date()
+            updated_at: new Date(),
+            community_id: communityId
           });
         user = await db('users').where({ id: user.id }).first();
       }

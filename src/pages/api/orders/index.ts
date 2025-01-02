@@ -27,8 +27,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 async function handlePostRequest(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { routeId, dates, totalAmount } = req.body;
-    if (!routeId || !dates || !totalAmount) {
+    const { routeId, dates, totalAmount, tripType } = req.body;
+    if (!routeId || !dates || !totalAmount || !tripType) {
       return res.status(400).json({ message: '缺少必要参数' });
     }
 
@@ -38,7 +38,7 @@ async function handlePostRequest(req: NextApiRequest, res: NextApiResponse) {
     }
 
     // 创建订单
-    const orderId = await createOrder(userId, routeId, totalAmount, dates);
+    const orderId = await createOrder(userId, routeId, totalAmount, dates, tripType);
     
     // 直接处理支付
     const order = await getOrder(orderId);
@@ -83,7 +83,7 @@ function verifyToken(authHeader?: string): number | null {
   }
 }
 
-async function createOrder(userId: number, routeId: number, totalAmount: number, dates: string[]): Promise<number> {
+async function createOrder(userId: number, routeId: number, totalAmount: number, dates: string[], tripType: string): Promise<number> {
   const orderNo = `ORDER${Date.now()}${Math.floor(Math.random() * 10000)}`;
   const [orderId] = await db('orders').insert({
     user_id: userId,
@@ -92,7 +92,8 @@ async function createOrder(userId: number, routeId: number, totalAmount: number,
     status: 0,
     created_at: new Date(),
     order_no: orderNo,
-    selected_dates: JSON.stringify(dates)
+    selected_dates: JSON.stringify(dates),
+    trip_type: tripType
   });
   return orderId;
 }
@@ -135,7 +136,7 @@ async function createWxOrder(order: any, paymentNo: string) {
 
 async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { current = 1, pageSize = 10, order_no, route_name, user_name, status } = req.query;
+    const { current = 1, pageSize = 10, order_no, route_name, user_name, status, trip_type, start_time, end_time } = req.query;
 
     // 验证用户权限
     const userId = verifyToken(req.headers.authorization);
@@ -157,6 +158,14 @@ async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
       // 添加状态筛选
       if (status !== undefined && status !== '') {
         builder.where('orders.status', status);
+      }
+      // 添加 trip_type 筛选
+      if (trip_type) {
+        builder.where('orders.trip_type', trip_type);
+      }
+      // 添加时间范围筛选
+      if (start_time && end_time) {
+        builder.whereBetween('orders.created_at', [start_time, end_time]);
       }
     };
 
