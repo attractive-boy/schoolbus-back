@@ -12,15 +12,16 @@ const HomePage: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await post<{ token: string }>('/login', {
+      const res = await post<{
+        data: any; token: string 
+}>('/login', {
         username,
         password
       }, {
         showSuccess: true,
         successMsg: '登录成功'
       });
-      
-      localStorage.setItem('token', res.token);
+      localStorage.setItem('token', res.data.token);
       window.location.href = '/bus';
     } catch (error) {
       // 错误已经被请求服务处理，这里不需要额外处理

@@ -4,6 +4,10 @@ import knex from '../../../../db'; // 假设你的数据库连接文件
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { Irefunds, Irefunds2 } from 'wechatpay-node-v3/dist/lib/interface';
 import dayjs from 'dayjs';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+
+// 加载插件
+dayjs.extend(isSameOrAfter);
 
 // 创建微信支付客户端
 const pay = new WxPay({
@@ -24,10 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(404).json({ message: '未找到订单信息' });
       }
 
-      // 检查订单状态
-      if (orderInfo.status !== 1) {
-        return res.status(400).json({ message: '只有已支付的订单可以申请退款' });
-      }
+
 
       // 获取支付记录
       const paymentRecord = await knex('payments')
@@ -46,8 +47,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       const today = dayjs().format('YYYY-MM-DD');
-      const usedDates = orderInfo.selected_dates?.filter((date: string) => dayjs(date).isBefore(today)) || [];
-      const remainingDates = orderInfo.selected_dates?.filter((date: string) => dayjs(date).isSameOrAfter(today)) || [];
+      const usedDates = orderInfo.selected_dates?.filter((date: string) => {
+        const dayjsDate = dayjs(date);
+        return dayjsDate.isValid() && dayjsDate.isBefore(today);
+      }) || [];
+      const remainingDates = orderInfo.selected_dates?.filter((date: string) => {
+        const dayjsDate = dayjs(date);
+        return dayjsDate.isValid() && dayjsDate.isSameOrAfter(today);
+      }) || [];
       
       const usedDays = usedDates.length;
       const remainingDays = remainingDates.length;

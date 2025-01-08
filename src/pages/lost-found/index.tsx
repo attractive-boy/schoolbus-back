@@ -1,8 +1,8 @@
 'use client';
 import React, { useEffect, useRef, useState } from "react";
-import { ActionType, ProTable } from "@ant-design/pro-components";
+import { ActionType, ProTable, EditableProTable, ProCard, ProFormField, ProFormRadio } from "@ant-design/pro-components";
 import { Button, Modal, Form, Input, Select, Space, Popconfirm, Upload, message } from "antd";
-import { PlusOutlined, UploadOutlined } from "@ant-design/icons";
+import { PlusOutlined, UploadOutlined, EnvironmentOutlined } from "@ant-design/icons";
 import { get, post, put, del } from '@/services/request';
 import Layout from "@/components/Layout";
 import type { ProColumns } from '@ant-design/pro-components';
@@ -32,9 +32,15 @@ const LostFoundPage = () => {
   const [modalData, setModalData] = useState<Partial<LostFound>>({});
   const [imageList, setImageList] = useState<string[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [locationModalVisible, setLocationModalVisible] = useState(false);
+  const [locations, setLocations] = useState<any[]>([]);
+  const [editingLocation, setEditingLocation] = useState<Partial<any>>({});
+  
+  const [editableKeys, setEditableRowKeys] = useState<React.Key[]>([]);
 
   useEffect(() => {
     setMounted(true);
+    fetchLocations();
   }, []);
 
   const columns: ProColumns<LostFound>[] = [
@@ -53,6 +59,7 @@ const LostFoundPage = () => {
       dataIndex: 'title',
       valueType: 'text',
       align: 'center',
+      hideInTable: true,
     },
     {
       title: '地点',
@@ -65,6 +72,7 @@ const LostFoundPage = () => {
       dataIndex: 'contact',
       valueType: 'text',
       align: 'center',
+      hideInTable: true,
     },
     {
       title: '状态',
@@ -75,6 +83,7 @@ const LostFoundPage = () => {
         closed: { text: '已完成', status: 'Default' },
       },
       align: 'center',
+      hideInTable: true,
     },
     {
       title: '发布者',
@@ -87,6 +96,7 @@ const LostFoundPage = () => {
       dataIndex: 'view_count',
       valueType: 'digit',
       align: 'center',
+      hideInTable: true,
     },
     {
       title: '发布时间',
@@ -212,9 +222,96 @@ const LostFoundPage = () => {
     }
   };
 
+  const fetchLocations = async () => {
+    try {
+      const response = await get('/locations');
+      console.log(response);
+      setLocations(response || []);
+    } catch (error) {
+      message.error('获取地点失败');
+    }
+  };
+
+  const handleAddLocation = async (values: any) => {
+    try {
+      await post('/locations', values);
+      fetchLocations();
+      setLocationModalVisible(false);
+    } catch (error) {
+      message.error('添加地点失败');
+    }
+  };
+
+  const handleEditLocation = async (values: any) => {
+    try {
+      await put(`/locations/${editingLocation.id}`, values);
+      fetchLocations();
+      setLocationModalVisible(false);
+    } catch (error) {
+      message.error('编辑地点失败');
+    }
+  };
+
+  const handleDeleteLocation = async (id: number) => {
+    try {
+      await del(`/locations/${id}`);
+      fetchLocations();
+    } catch (error) {
+      message.error('删除地点失败');
+    }
+  };
+
+  const locationColumns: ProColumns<any>[] = [
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      align: 'center' as const,
+      editable: () => false,
+      hideInTable: true,
+    },
+    {
+      title: '地点名称',
+      dataIndex: 'name',
+      align: 'center' as const,
+      editable: () => true,
+    },
+    {
+      title: '操作',
+      valueType: 'option',
+      align: 'center' as const,
+      render: (_: any, record: any) => [
+        <a
+          key="edit"
+          onClick={() => {
+            setEditableRowKeys([...editableKeys, record.id]);
+
+
+          }}
+        >
+          编辑
+        </a>,
+        <Popconfirm
+          key="delete"
+          title="确定要删除这个地点吗？"
+          onConfirm={() => handleDeleteLocation((record as any).id)}
+          okText="确定"
+          cancelText="取消"
+        >
+          <Button type="link" danger>
+            删除
+          </Button>
+        </Popconfirm>,
+      ],
+    },
+  ];
+
+
+
   if (!mounted) {
     return null;
   }
+
+  
 
   return (
     <Layout>
@@ -252,6 +349,9 @@ const LostFoundPage = () => {
           <Button key="add" type="primary" onClick={handleAdd}>
             <PlusOutlined /> 新增
           </Button>,
+          <Button key="setLocation" type="primary" onClick={() => setLocationModalVisible(true)}>
+            <EnvironmentOutlined /> 设置地点
+          </Button>
         ]}
       />
 
@@ -278,21 +378,21 @@ const LostFoundPage = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item
+          {/* <Form.Item
             label="标题"
             name="title"
             rules={[{ required: true, message: '请输入标题' }]}
           >
             <Input />
-          </Form.Item>
-
+          </Form.Item> */}
+{/* 
           <Form.Item
             label="描述"
             name="description"
             rules={[{ required: true, message: '请输入描述' }]}
           >
             <Input.TextArea rows={4} />
-          </Form.Item>
+          </Form.Item> */}
 
           <Form.Item
             label="图片"
@@ -325,18 +425,22 @@ const LostFoundPage = () => {
             name="location"
             rules={[{ required: true, message: '请输入地点' }]}
           >
-            <Input />
+            <Select>
+              {locations.map((location) => (
+                <Select.Option key={location.id} value={location.name}>{location.name}</Select.Option>
+              ))}
+            </Select>
           </Form.Item>
 
-          <Form.Item
+          {/* <Form.Item
             label="联系方式"
             name="contact"
             rules={[{ required: true, message: '请输入联系方式' }]}
           >
             <Input />
-          </Form.Item>
+          </Form.Item> */}
 
-          <Form.Item
+          {/* <Form.Item
             label="状态"
             name="status"
             rules={[{ required: true, message: '请选择状态' }]}
@@ -345,7 +449,7 @@ const LostFoundPage = () => {
               <Select.Option value="open">进行中</Select.Option>
               <Select.Option value="closed">已完成</Select.Option>
             </Select>
-          </Form.Item>
+          </Form.Item> */}
 
           <Form.Item>
             <Space>
@@ -358,6 +462,52 @@ const LostFoundPage = () => {
             </Space>
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="地点管理"
+        open={locationModalVisible}
+        onCancel={() => setLocationModalVisible(false)}
+        footer={null}
+        width={800}
+      >
+        <EditableProTable<any>
+          columns={locationColumns}
+          dataSource={locations}
+          rowKey="id"
+          recordCreatorProps={{
+            record: () => ({ id: 0, name: '' }),
+          }}
+          request={async () => {
+            const response = await get('/locations');
+            return {
+              data: response || [],
+              success: true,
+              total: response.length || 0
+            };
+          }}
+          editable={{
+            type: 'multiple',
+            editableKeys: editableKeys,
+            onChange: setEditableRowKeys,
+            onValuesChange: async (record, recordList) => {
+              // 这里可以移除原有的处理逻辑
+            },
+            onSave: async (rowKey, data, row) => {
+              console.log(rowKey, data, row);
+              //更新或者修改
+              if(data.id != 0){
+                await put(`/locations/${data.id}`, { name: data.name });
+                setEditableRowKeys([...editableKeys, data.id]);
+              }else{
+                const res = await post('/locations', { name: data.name });
+                setEditableRowKeys([...editableKeys, res.id]);
+              } 
+              // 刷新数据
+              fetchLocations();   
+            },
+          }}
+        />
       </Modal>
     </Layout>
   );

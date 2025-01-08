@@ -193,6 +193,8 @@ async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
 
     // 并行执行查询
     const [totalResult, list] = await Promise.all([totalQuery, listQuery]);
+    // 输出查询语句
+    console.log("listQuery==>",listQuery.toSQL().toNative());
 
     return res.status(200).json({
       success: true,

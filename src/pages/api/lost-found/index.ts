@@ -103,17 +103,17 @@ async function createLostFound(req: NextApiRequest, res: NextApiResponse) {
     const { type, title, description, images, location, contact, status } = req.body;
 
     // 数据验证
-    if (!type || !title || !description || !location || !contact) {
+    if (!type || !location) {
       return res.status(400).json({ success: false, message: '缺少必要参数' });
     }
 
     const [id] = await db('lost_found').insert({
       type,
-      title,
-      description,
+      title: title || '',
+      description: description || '',
       images: JSON.stringify(images || []),
       location,
-      contact,
+      contact: '',
       status: status || 'open',
       user_id: user.id,
       user_name: user.nickname || user.username,

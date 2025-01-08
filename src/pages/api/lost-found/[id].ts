@@ -20,7 +20,7 @@ async function updateLostFound(req: NextApiRequest, res: NextApiResponse, id: st
     const { type, title, description, images, location, contact, status } = req.body;
 
     // 数据验证
-    if (!type || !title || !description || !location || !contact) {
+    if (!type || !location) {
       return res.status(400).json({ success: false, message: '缺少必要参数' });
     }
 
@@ -35,7 +35,7 @@ async function updateLostFound(req: NextApiRequest, res: NextApiResponse, id: st
         contact,
         status,
         updated_at: new Date(),
-      });
+      }); 
 
     return res.status(200).json({
       success: true,

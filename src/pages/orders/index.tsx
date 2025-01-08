@@ -323,7 +323,7 @@ const OrdersPage = () => {
         >
           查看
         </Button>,
-        record.status === 1 && (
+
           <Button
             key="refund"
             type="link"
@@ -332,7 +332,7 @@ const OrdersPage = () => {
           >
             退款
           </Button>
-        ),
+        ,
       ],
     },
   ];
