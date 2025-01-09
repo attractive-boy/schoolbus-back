@@ -16,7 +16,7 @@ async function getStableAccessToken() {
   try {
     // 使用 GET 请求替代 POST 请求
     // const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${WECHAT_CONFIG.appId}&secret=${WECHAT_CONFIG.appSecret}`;
-    const url = `http://8.155.19.17:12000/cgi-bin/token?grant_type=client_credential&appid=${WECHAT_CONFIG.appId}&secret=${WECHAT_CONFIG.appSecret}`;
+    const url = `http://8.155.19.17:82/cgi-bin/token?grant_type=client_credential&appid=${WECHAT_CONFIG.appId}&secret=${WECHAT_CONFIG.appSecret}`;
     const response = await axios.get(url);
     console.log(response.data);
     return response.data.access_token;
