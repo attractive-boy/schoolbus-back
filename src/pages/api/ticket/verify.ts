@@ -53,7 +53,7 @@ async function verifyTicket(req: NextApiRequest, res: NextApiResponse) {
     // 假设我们已经有了ticketInfo对象，包含了路线名称和乘车时间
     const ticketInfo = {
       route_name: allRoutes[0],
-      departure_time: new Date().toLocaleString('zh-CN'),
+      departure_time: new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Shanghai' })).toLocaleString('zh-CN'),
       user_id: isTodaySelected[0].id
     };
 
