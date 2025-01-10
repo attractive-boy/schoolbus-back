@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         上学乘车线路: order['路线名称'], // 假设订单中有上学乘车线路字段
         放学是否乘车: order['trip_type'] == '单程' ? '否' : '是', // 假设订单中有放学乘车字段
         所住小区: order['小区'], // 假设订单中有小区字段
-        本月购票情况: order['status'] == '1' ? '已购票付款' : '', // 假设订单中有购票情况字段
+        本月购票情况: order['status'] != '0' ? '已购票付款' : '', // 假设订单中有购票情况字段
         本月退票情况: order['remark'], // 假设订单中有退票情况字段
       }));
 

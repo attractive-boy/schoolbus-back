@@ -352,6 +352,7 @@ const OrdersPage = () => {
                 ...params,
                 pageSize: params.pageSize,
                 current: params.current,
+                is_admin: true,
               });
               
               return {

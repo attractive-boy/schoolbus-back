@@ -83,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         refund_amount: refundAmount, // 使用计算出的退款金额
         used_days: usedDays,
         remaining_days: remainingDays,
-        remark: `已退 ${remainingDates.map((date: string) => dayjs(date).day() + '日').join(', ')}`
+        remark: `已退 ${remainingDates.map((date: string) => dayjs(date).month() + '月' + dayjs(date).day() + '日').join(', ')}`
       });
       
       // 更新支付记录状态

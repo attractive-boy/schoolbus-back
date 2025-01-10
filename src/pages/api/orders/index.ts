@@ -136,14 +136,14 @@ async function createWxOrder(order: any, paymentNo: string) {
 
 async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { current = 1, pageSize = 10, order_no, route_name, user_name, status, trip_type, start_time, end_time } = req.query;
+    const { current = 1, pageSize = 10, order_no, route_name, user_name, status, trip_type, start_time, end_time, is_admin } = req.query;
 
     // 验证用户权限
     const userId = verifyToken(req.headers.authorization);
 
     // 构建基础条件
-    const whereConditions = (builder: any) => {
-      if (userId) {
+    const whereConditions = async (builder: any) => {
+      if (userId && !is_admin) {
         builder.where('orders.user_id', userId);
       }
       if (order_no) {
