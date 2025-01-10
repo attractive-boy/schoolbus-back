@@ -60,7 +60,7 @@ export default async function handler(
       case 'DELETE':
         await db('bus_schedules')
           .where({ id })
-          .delete();
+          .update({ status: 'inactive' });
           
         return res.status(200).json({
           success: true
