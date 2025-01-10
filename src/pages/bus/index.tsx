@@ -103,13 +103,13 @@ const BusSchedulePage = () => {
         </Button>,
         <Popconfirm
           key="delete"
-          title="确定要删除此线路吗？"
+          title="确定要禁用此线路吗？"
           onConfirm={() => handleDelete(record)}
           okText="确定"
           cancelText="取消"
         >
           <Button type="link" danger>
-            删除
+            禁用
           </Button>
         </Popconfirm>,
       ],
