@@ -344,7 +344,7 @@ const OrdersPage = () => {
           actionRef={ref}
           columns={columns}
           pagination={{
-            pageSize: 10,
+            showSizeChanger: true,
           }}
           request={async (params) => {
             try {
