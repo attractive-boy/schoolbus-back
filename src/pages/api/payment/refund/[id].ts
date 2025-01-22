@@ -68,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         out_refund_no: `REF${Date.now()}${Math.floor(Math.random() * 10000)}`,
         amount: {
           total: parseInt((paymentRecord.amount * 100).toString()),
-          refund: refundAmount,
+          refund: parseInt((refundAmount * 100).toString()),
           currency: 'CNY',
         },
       } as Irefunds2;
