@@ -27,13 +27,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // 处理数据以符合 Excel 格式
       const excelData = orders.map((order, index) => ({
         序号: index + 1,
+        订单编号: order['order_no'],
         班级: order['用户姓名'].slice(0, 3),
         姓名: order['用户姓名'].slice(3).replace(/^班/, ''),
         上学乘车线路: order['路线名称'], // 假设订单中有上学乘车线路字段
         放学是否乘车: order['trip_type'] == '单程' ? '否' : '是', // 假设订单中有放学乘车字段
         所住小区: order['小区'], // 假设订单中有小区字段
-        本月购票情况: order['status'] != '0' ? '已购票付款' : '', // 假设订单中有购票情况字段
+        本月购票情况: '已购 ' + Array.from(new Set(order['selected_dates'].map((date: string) => date.split('-')[1] + '月'))).join('、'),
         本月退票情况: order['remark'], // 假设订单中有退票情况字段
+        订单金额: order['total_amount'],
+        退款金额: order['refund_amount'],
       }));
 
       // 创建工作簿和工作表
