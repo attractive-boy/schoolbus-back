@@ -2,7 +2,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { ActionType, ProTable } from "@ant-design/pro-components";
 import { Button, Tag, Modal, message, Calendar, DatePicker, Popconfirm } from "antd";
-import { downloadExcelFile, get, put } from '@/services/request';
+import { downloadExcelFile, get, post, put } from '@/services/request';
 import Layout from "@/components/Layout";
 import type { ProColumns } from '@ant-design/pro-components';
 import dayjs from 'dayjs';
@@ -197,6 +197,13 @@ const OrdersPage = () => {
     });
   };
 
+  const handleCancel = async (record: OrderType) => {
+    await post(`/orders/cancel`, {id: record.id}, {
+      showSuccess: true,
+      successMsg: '订单已取消'
+    });
+  };
+
   const handleExport = () => {
     if (selectedDate) {
       const year = selectedDate.year();
@@ -317,6 +324,14 @@ const OrdersPage = () => {
       align: 'center',
     },
     {
+      title: '订票月份',
+      dataIndex: 'ticket_month',
+      key: 'ticket_month',
+      valueType: 'dateMonth',
+      hideInTable: true,
+      align: 'center',
+    },
+    {
       title: '操作',
       valueType: 'option',
       align: 'center',
@@ -336,6 +351,13 @@ const OrdersPage = () => {
             onClick={() => handleRefund(record)}
           >
             退款
+          </Button>,
+          <Button
+            key="cancel"
+            type="link"
+            onClick={() => handleCancel(record)}
+          >
+            取消订单
           </Button>
         ,
       ],

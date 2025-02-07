@@ -136,7 +136,7 @@ async function createWxOrder(order: any, paymentNo: string) {
 
 async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { current = 1, pageSize = 10, order_no, route_name, user_name, status, trip_type, start_time, end_time, is_admin } = req.query;
+    const { current = 1, pageSize = 10, order_no, route_name, user_name, status, trip_type, start_time, end_time, is_admin,ticket_month } = req.query;
 
     // 验证用户权限
     const userId = verifyToken(req.headers.authorization);
@@ -166,6 +166,9 @@ async function handleGetRequest(req: NextApiRequest, res: NextApiResponse) {
       // 添加时间范围筛选
       if (start_time && end_time) {
         builder.whereBetween('orders.created_at', [start_time, end_time]);
+      }
+      if(ticket_month){
+        builder.where('orders.selected_dates', 'like', `%${ticket_month}%`);
       }
     };
 

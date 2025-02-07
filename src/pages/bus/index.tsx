@@ -1,7 +1,7 @@
 'use client';
 import React, { useRef, useState, useEffect } from "react";
 import { ActionType, ProTable } from "@ant-design/pro-components";
-import { Button, Modal, Form, Input, TimePicker, Space, Popconfirm, message, Calendar, Tag } from "antd";
+import { Button, Modal, Form, Input, TimePicker, Space, Popconfirm, message, Calendar, Tag, Radio } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { get, post, put, del } from '@/services/request';
 import Layout from "@/components/Layout";
@@ -90,6 +90,18 @@ const BusSchedulePage = () => {
       align: 'center',
     },
     {
+      title: '往返类型',
+      dataIndex: 'only_oneway',
+      key: 'only_oneway',
+      valueType: 'select',
+      valueEnum: {
+        '1': { text: '仅单程' },
+        '0': { text: '往返' },
+      },
+      search: false,
+      align: 'center',
+    },
+    {
       title: '操作',
       valueType: 'option',
       align: 'center' as const,
@@ -160,6 +172,7 @@ const BusSchedulePage = () => {
       stops: values.stops.split(',').map((stop: string) => stop.trim()),
       daily_price: values.daily_price,
       status: 'active',
+      only_oneway: values.only_oneway,
     };
 
     try {
@@ -332,6 +345,16 @@ const BusSchedulePage = () => {
             <div>
             本月已选择天数：{selectedDates.filter(date => selectedMonth == dayjs(date).month()).length}
             </div>
+          </Form.Item>
+          <Form.Item
+            label="往返类型"
+            name="only_oneway"
+            rules={[{ required: true, message: '请选择往返类型' }]}
+          >
+            <Radio.Group>
+              <Radio value={'1'}>仅单程</Radio>
+              <Radio value={'0'}>往返</Radio>
+            </Radio.Group>
           </Form.Item>
 
           <Form.Item

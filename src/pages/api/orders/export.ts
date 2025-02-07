@@ -25,6 +25,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(404).json({ message: '没有找到符合条件的订单' });
       }
       console.log(orders);
+      // 0: { color: 'blue', text: '待支付' },
+      // 1: { color: 'green', text: '已支付' },
+      // 2: { color: 'red', text: '已取消' },
+      // 3: { color: 'orange', text: '已退款' },
+      // 4: { color: 'purple', text: '退款申请中' },
+      const status_dic: any = { '0': '待支付', '1': '已支付', '2': '已取消', '3': '已退款', '4': '退款申请中' };
       // 处理数据以符合 Excel 格式
       const excelData = orders.map((order, index) => ({
         序号: index + 1,
@@ -36,8 +42,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         所住小区: order['小区'], // 假设订单中有小区字段
         本月购票情况: '已购 ' + Array.from(new Set(order['selected_dates'].map((date: string) => date.split('-')[1] + '月'))).join('、'),
         本月退票情况: order['remark'], // 假设订单中有退票情况字段
-        订单金额: order['total_amount'],
-        退款金额: order['refund_amount'],
+        订单金额: { v: order['total_amount'], t: 'n' }, // 设置为数字类型
+        退款金额: { v: order['refund_amount'], t: 'n' }, // 设置为数字类型
+        订单状态: status_dic[order['status']], // 使用字符串键
       }));
 
       // 创建工作簿和工作表
