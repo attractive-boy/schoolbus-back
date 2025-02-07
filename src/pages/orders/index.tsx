@@ -33,6 +33,8 @@ const OrdersPage = () => {
   const ref = useRef<ActionType>();
   const [isClient, setIsClient] = useState(false);
   const [selectedDate, setSelectedDate] = useState(dayjs());
+  const formRef:any = useRef();
+
 
   useEffect(() => {
     setIsClient(true);
@@ -202,10 +204,13 @@ const OrdersPage = () => {
       const startDate = dayjs(`${year}-${month}-01`).format('YYYY-MM-DD');
       const endDate = dayjs(`${year}-${month}-01`).endOf('month').format('YYYY-MM-DD');
       console.log(startDate, endDate);
+      const filters = formRef.current?.getFieldsValue();
+      console.log(filters);
       //发送请求
       downloadExcelFile(`/orders/export`, {
         start_time: startDate,
         end_time: endDate,
+        status: filters.status
       }, {
         showSuccess: true,
         successMsg: '导出成功'
@@ -342,6 +347,7 @@ const OrdersPage = () => {
       {isClient ? (
         <ProTable<OrderType>
           actionRef={ref}
+          formRef={formRef}
           columns={columns}
           pagination={{
             showSizeChanger: true,

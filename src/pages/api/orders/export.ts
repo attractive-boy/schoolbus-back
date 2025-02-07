@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    const { start_time, end_time } = req.query;
+    const { start_time, end_time, status } = req.query;
 
     // 确保 start_time 和 end_time 是有效的字符串
     if (typeof start_time !== 'string' || typeof end_time !== 'string') {
@@ -18,6 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .leftJoin('bus_schedules', 'orders.route_id', 'bus_schedules.id') // JOIN 路线表
         .leftJoin('communities', 'communities.id', 'users.community_id') // JOIN 路线表
         .whereBetween('orders.created_at', [start_time, end_time])
+        .where('orders.status', status)
         .select('orders.*', 'users.nickname as 用户姓名', 'bus_schedules.route_name as 路线名称', 'communities.name as 小区'); // 选择所需字段
 
       if (orders.length === 0) {
