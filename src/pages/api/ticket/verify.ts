@@ -46,6 +46,75 @@ async function verifyTicket(req: NextApiRequest, res: NextApiResponse) {
     if (isTodaySelected.length === 0) {
       return res.status(400).json({ message: '今天没有乘车计划' });
     }
+
+    //如果是单程 一天只允许验票一次 
+    let trip_type = '单程'
+    for(var item of isTodaySelected){
+      if (item.trip_type == '往返') {
+        trip_type = '往返'
+        break;
+      }
+    }
+
+    if (trip_type == '单程') {
+      // 判断今天是否已经验票
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // 设置为当天的开始时间
+    
+      const tomorrow = new Date();
+      tomorrow.setHours(23, 59, 59, 999); // 设置为当天的结束时间
+    
+      const countResult = await db('ticket_verification_records')
+        .where('user_id', userId)
+        .whereBetween('created_at', [today.toISOString(), tomorrow.toISOString()])
+        .count('* as count')
+        .first();
+    
+      if (countResult && Number(countResult.count) >= 1) {
+        return res.status(400).json({ message: '今天已经验过一次票' });
+      }
+    }
+
+    //判断现在是上午还是下午
+    const currentHour = new Date().getHours();
+    if (currentHour < 12) {
+      // 获取今天上午的验票次数
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0); // 设置为当天的开始时间
+
+      const noon = new Date();
+      noon.setHours(12, 0, 0, 0); // 设置为当天中午12点
+
+      const countResult = await db('ticket_verification_records')
+        .where('user_id', userId)
+        .whereBetween('created_at', [startOfDay.toISOString(), noon.toISOString()])
+        .count('* as count')
+        .first();
+
+      if (countResult && Number(countResult.count) >= 1) {
+        return res.status(400).json({ message: '今天上午的验票次数已达上限' });
+      }
+
+    } else {
+      // 查看今天下午是否已经验过票
+      const noon = new Date();
+      noon.setHours(12, 0, 0, 0); // 设置为当天中午12点
+
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999); // 设置为当天的结束时间
+
+      const afternoonCountResult = await db('ticket_verification_records')
+        .where('user_id', userId)
+        .whereBetween('created_at', [noon.toISOString(), endOfDay.toISOString()])
+        .count('* as count')
+        .first();
+
+      if (afternoonCountResult && Number(afternoonCountResult.count) >= 1) {
+        return res.status(400).json({ message: '今天下午已经验过一次票' });
+      }
+    }
+    
+
     // 获取所有路线
     const allRoutes = isTodaySelected.map(route => route.route_name);
     console.log(allRoutes);
@@ -56,9 +125,15 @@ async function verifyTicket(req: NextApiRequest, res: NextApiResponse) {
       departure_time: new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Shanghai' })).toLocaleString('zh-CN'),
       user_id: isTodaySelected[0].id
     };
+    
 
     // 验证成功后发送通知
     await sendWechatNotification(ticketInfo); // 发送通知给用户
+
+    await db('ticket_verification_records').insert({
+      user_id: ticketInfo.user_id,
+      created_at: new Date()
+    });
 
     return res.status(200).json({
       valid: true,
