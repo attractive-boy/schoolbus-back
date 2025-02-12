@@ -5,6 +5,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { Irefunds, Irefunds2 } from 'wechatpay-node-v3/dist/lib/interface';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import { request } from 'http';
 
 // 加载插件
 dayjs.extend(isSameOrAfter);
@@ -61,6 +62,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // 计算退款金额（按比例）
       const refundAmount = Number(((remainingDays / totalDays) * orderInfo.total_amount).toFixed(2));
+      
+      const refundAmount_forreq = req.body.refundAmount;
+      if (refundAmount == refundAmount_forreq) {
+        return res.status(400).json({ message: '退款金额校验失败' });
+      }
 
       // 创建退款请求
       const refundData = {

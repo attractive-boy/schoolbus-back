@@ -209,7 +209,7 @@ const OrdersPage = () => {
       const year = selectedDate.year();
       const month = selectedDate.month() + 1;
       const startDate = dayjs(`${year}-${month}-01`).format('YYYY-MM-DD');
-      const endDate = dayjs(`${year}-${month}-01`).endOf('month').format('YYYY-MM-DD');
+      const endDate = dayjs(`${year}-${month+1}-01`).format('YYYY-MM-DD');
       console.log(startDate, endDate);
       const filters = formRef.current?.getFieldsValue();
       console.log(filters);
