@@ -122,7 +122,7 @@ async function createWxOrder(order: any, paymentNo: string) {
     appid: process.env.WECHAT_APP_ID,
     mchid: process.env.WECHAT_MCH_ID,
     out_trade_no: paymentNo,
-    notify_url: `https://moonyun.us.kg/api/payment/notify`,
+    notify_url: `https://bingshi.djjp.cn/api/payment/notify`,
     description: `乘车预约支付`,
     amount: {
       total: parseInt((order.total_amount * 100).toString())
