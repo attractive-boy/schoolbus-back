@@ -85,6 +85,7 @@ function verifyToken(authHeader?: string): number | null {
 
 async function createOrder(userId: number, routeId: number, totalAmount: number, dates: string[], tripType: string): Promise<number> {
   const orderNo = `ORDER${Date.now()}${Math.floor(Math.random() * 10000)}`;
+  const user_name = await db('users').where('id', userId).select('nickname').first();
   const [orderId] = await db('orders').insert({
     user_id: userId,
     route_id: routeId,
@@ -93,7 +94,8 @@ async function createOrder(userId: number, routeId: number, totalAmount: number,
     created_at: new Date(),
     order_no: orderNo,
     selected_dates: JSON.stringify(dates),
-    trip_type: tripType
+    trip_type: tripType,
+    order_user_name: user_name.nickname
   });
   return orderId;
 }

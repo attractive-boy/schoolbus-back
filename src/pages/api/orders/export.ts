@@ -45,6 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         订单金额: { v: order['total_amount'], t: 'n' }, // 设置为数字类型
         退款金额: { v: order['refund_amount'], t: 'n' }, // 设置为数字类型
         订单状态: status_dic[order['status']], // 使用字符串键
+        下单用户名: order['order_user_name'],
       }));
 
       // 创建工作簿和工作表
